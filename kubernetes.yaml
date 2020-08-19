@@ -1,0 +1,77 @@
+---
+- hosts: localhost
+  become: true
+  name: Install Docker
+  vars:
+    CTOP_VERSION: "0.7.3"
+    DOCKER_COMPOSE_VERSION: "1.25.1"
+    DOCKER_PACKAGES:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    USER: "YOUR_USER_ON_THE_REMOTE_SERVER"
+  tasks:
+  - name: Install packages needed for Docker
+    apt:
+      name: "{{ DOCKER_PACKAGES }}"
+      state: present
+  - name: Add Docker GPG apt Key
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+  - name: Save the current Ubuntu release version into a variable
+    shell: lsb_release -cs
+    register: ubuntu_version
+  - name: Add Docker Repository
+    apt_repository:
+      repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ubuntu_version.stdout }} stable"
+      state: present
+  - name: Update apt packages
+    apt:
+      update_cache: "yes"
+  - name: Install Docker
+    apt:
+      name: "docker-ce"
+      state: present
+  - name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+    sysctl:
+      name: net.bridge.bridge-nf-call-ip6tables
+      value: 1
+      state: present
+  - name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+    sysctl:
+      name: net.bridge.bridge-nf-call-iptables
+      value: 1
+      state: present
+  - name: Add an apt signing key for Kubernetes
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+  - name: writing something
+    copy:
+      content: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+      dest: "/etc/apt/sources.list.d/kubernetes.list"
+  - name: add Kubernetes apt_repository
+    get_url:
+      url: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      dest: ./
+  - name: writing something 
+    copy:
+      content: "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+      dest: "/etc/apt/sources.list.d/kubernetes.list"
+  - name: Install Kubernetes binaries
+    apt:
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+      - kubelet
+      - kubeadm
+      - kubectl
+  - name: Restart kubelet
+    service:
+      name: kubelet
+      state: restarted
