@@ -85,8 +85,8 @@ resource "azurerm_virtual_machine_extension" "example" {
   type_handler_version = "2.0"
   settings = <<SETTINGS
     {
-      "fileUris": ["https://raw.githubusercontent.com/rakshith-gannarapu/Final123/master/code"],
-      "commandToExecute": "bash script.sh"
+      "fileUris": ["https://raw.githubusercontent.com/rakshith-gannarapu/Final123/master/code.sh"],
+      "commandToExecute": "bash code.sh"
     }
 SETTINGS
   tags = {
